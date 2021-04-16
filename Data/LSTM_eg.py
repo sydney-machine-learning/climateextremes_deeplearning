@@ -18,10 +18,6 @@ from sklearn.preprocessing import MinMaxScaler
 
 from numpy import array
 
-data = np.genfromtxt("Edi_month_grid - Copy.csv", delimiter=',')
-univariate_g1 = data[:, 0]
-train = univariate_g1[0:420]
-test = univariate_g1[421:457]
 
 #print(train)
 
@@ -88,13 +84,13 @@ def MODEL_LSTM(name, x_train, x_test, y_train, y_test, Num_Exp, n_steps_in, n_st
         for j in range(n_steps_out):
             Step_RMSE[run][j] = rmse(y_predicttest[:, j], y_test[:, j])
 
-        chain_inp = []
-        chain_out = []
-        chain_inp.append(list(future_predict_df.tail(1).iloc[0, 0:6]))
-        chain_out.append(list(future_predict_df.tail(1).iloc[0, 6:10]))
-        chain_inp = np.asarray(chain_inp, dtype=np.float32)
-        chain_out = np.asarray(chain_out, dtype=np.float32)
-        results = []
+        #chain_inp = []
+        #chain_out = []
+        #chain_inp.append(list(future_predict_df.tail(1).iloc[0, 0:6]))
+        #chain_out.append(list(future_predict_df.tail(1).iloc[0, 6:10]))
+        #chain_inp = np.asarray(chain_inp, dtype=np.float32)
+        #chain_out = np.asarray(chain_out, dtype=np.float32)
+        #results = []
         # for step in range (1,16):
         # chain_inp = np.concatenate([chain_inp.reshape(chain_inp.shape[0],chain_inp.shape[1],n_features)[:,-2:,:],chain_out.reshape(chain_out.shape[0],chain_out.shape[1],n_features)],axis=1)
         # chain_out = model.predict(chain_inp)
@@ -109,24 +105,38 @@ def MODEL_LSTM(name, x_train, x_test, y_train, y_test, Num_Exp, n_steps_in, n_st
 
 #------------------
 
+num_grids = 22
 
-n_steps_in = 3
-n_steps_out = 3
-x_train, y_train = split_sequence(train, n_steps_in, n_steps_out)
+for grid in range(num_grids):
 
-# summarize the data 
- 
-x_test, y_test = split_sequence(test, n_steps_in, n_steps_out)
- 
+    print(grid, ' is grid')
+
+    data = np.genfromtxt("Edi_month_grid - Copy.csv", delimiter=',')
+    univariate_g1 = data[:, grid]
+    train = univariate_g1[0:420]
+    test = univariate_g1[421:457]
 
 
-Hidden = 10
-Epochs = 20
-n_steps_out = 3
-n_steps_in = 3
-name = 'Grid1'
-Num_Exp = 3
+    n_steps_in = 3
+    n_steps_out = 3
+    x_train, y_train = split_sequence(train, n_steps_in, n_steps_out)
 
-future_prediction, train_acc, test_acc, Step_RMSE, Best_Predict_Test, y_predicttrain, y_predicttest = MODEL_LSTM(name,x_train,x_test,y_train,y_test,Num_Exp,n_steps_in,n_steps_out,Epochs, Hidden)
+    # summarize the data 
+     
+    x_test, y_test = split_sequence(test, n_steps_in, n_steps_out)
+     
 
-print(train_acc, test_acc) 
+
+    Hidden = 10
+    Epochs = 20
+    n_steps_out = 3
+    n_steps_in = 3
+    name = 'Grid1'
+    Num_Exp = 2
+
+    future_prediction, train_acc, test_acc, Step_RMSE, Best_Predict_Test, y_predicttrain, y_predicttest = MODEL_LSTM(name,x_train,x_test,y_train,y_test,Num_Exp,n_steps_in,n_steps_out,Epochs, Hidden)
+
+    print(train_acc, test_acc) 
+
+#np.mean
+# confidence interval from std
