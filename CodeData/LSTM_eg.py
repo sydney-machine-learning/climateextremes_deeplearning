@@ -65,6 +65,13 @@ def MODEL_LSTM(name, x_train, x_test, y_train, y_test, Num_Exp, n_steps_in, n_st
 	model.compile(optimizer='adam', loss='mse')
 	model.summary()
 	future_prediction = np.zeros([Num_Exp, 60])
+
+
+	y_predicttest_allruns = np.zeros([Num_Exp, x_test.shape[0], x_test.shape[1]])
+
+	print(y_predicttest_allruns.shape, ' shape ')
+
+
 	Best_RMSE = 1000  # Assigning a large number
 
 	start_time = time.time()
@@ -75,6 +82,7 @@ def MODEL_LSTM(name, x_train, x_test, y_train, y_test, Num_Exp, n_steps_in, n_st
 
 		y_predicttrain = model.predict(x_train)
 		y_predicttest = model.predict(x_test)
+		y_predicttest_allruns[run,:,:] = y_predicttest
 		#print(y_predicttest)
 		train_acc[run] = rmse(y_predicttrain, y_train)
 		#print(train_acc[run])
@@ -102,7 +110,7 @@ def MODEL_LSTM(name, x_train, x_test, y_train, y_test, Num_Exp, n_steps_in, n_st
 		# future_prediction[run][:] = np.ndarray.flatten(scaler.inverse_transform(np.reshape(results,(len(results),1))))
 		# print(future_prediction)
 	print("Total time for", Num_Exp, "experiments", time.time() - start_time)
-	return future_prediction, train_acc, test_acc, Step_RMSE, Best_Predict_Test, y_predicttrain, y_predicttest
+	return future_prediction, train_acc, test_acc, Step_RMSE, Best_Predict_Test, y_predicttrain, y_predicttest, y_predicttest_allruns
 
 def edi_cat(values):
 	
@@ -170,7 +178,7 @@ for grid in range(num_grids):
 	name = 'Grid1'
 	Num_Exp = 5
 
-	future_prediction, train_acc, test_acc, Step_RMSE, Best_Predict_Test, y_predicttrain, y_predicttest = MODEL_LSTM(name,x_train,x_test,y_train,y_test,Num_Exp,n_steps_in,n_steps_out,Epochs, Hidden)
+	future_prediction, train_acc, test_acc, Step_RMSE, Best_Predict_Test, y_predicttrain, y_predicttest, y_predicttest_allruns = MODEL_LSTM(name,x_train,x_test,y_train,y_test,Num_Exp,n_steps_in,n_steps_out,Epochs, Hidden)
 
 	
 
@@ -205,8 +213,27 @@ for grid in range(num_grids):
 
 	print(category, ' categories')
 
+	#print(y_predicttest_allruns, 'y_predicttest_allruns')
 
-	np.savetxt('values.txt', values)
+
+	y_predicttest_mean = np.mean(y_predicttest_allruns, axis=0)
+
+	y_predicttest_std = np.std(y_predicttest_allruns, axis=0)
+
+	print(y_predicttest_mean, ' y_predicttest_mean')
+
+	print(y_predicttest_std, ' y_predicttest_std')
+
+
+
+	#print(y_predicttest_allruns, 'y_predicttest_allruns')
+
+
+	np.savetxt('results/values_'+str(grid)+'_.txt', values)
+
+	np.savetxt('results/y_predicttest_mean_'+str(grid)+'_.txt', y_predicttest_mean)
+
+	np.savetxt('results/y_predicttest_std_'+str(grid)+'_.txt', y_predicttest_std)
 
 #np.mean
 # confidence interval from std
