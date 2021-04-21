@@ -75,8 +75,10 @@ def MODEL_LSTM(name, x_train, x_test, y_train, y_test, Num_Exp, n_steps_in, n_st
 
 		y_predicttrain = model.predict(x_train)
 		y_predicttest = model.predict(x_test)
-		# print(y_predicttest)
+		#print(y_predicttest)
 		train_acc[run] = rmse(y_predicttrain, y_train)
+		#print(train_acc[run])
+
 		test_acc[run] = rmse(y_predicttest, y_test)
 		if test_acc[run] < Best_RMSE:
 			Best_RMSE = test_acc[run]
@@ -131,8 +133,8 @@ def edi_cat(values):
 			category[i] = 0
 		else:
 			category[i] = 7
-	print(category)
-	print(values)
+	#print(category)
+	#print(values)
 
 	return  category 
 
@@ -174,12 +176,26 @@ for grid in range(num_grids):
 
 	print(train_acc, test_acc) 
 
-	mean_train = np.mean(train_acc, axis=1)
+	mean_train = np.mean(train_acc, axis=0)
+	mean_test = np.mean(test_acc, axis=0)
+	std_train = np.std(train_acc, axis=0)
+	std_test = np.std(test_acc, axis=0)
 
-	mean_test = np.std(test_acc, axis=1)
+	step_rmse_mean = np.mean(Step_RMSE, axis=0)
+	step_rmse_std = np.std(Step_RMSE, axis=0)
 
 
-	print(mean_train, mean_test) 
+	print(mean_train, 'mean_train') 
+	print(mean_test, 'mean_test') 
+
+	print(std_train, 'std_train') 
+	print(std_test, 'std_test') 
+
+
+	print(step_rmse_mean, ' step_rmse mean') 
+	print(step_rmse_std, ' step_rmse std') 
+
+
 
 
 	values = y_predicttest[:,0]
@@ -190,7 +206,7 @@ for grid in range(num_grids):
 	print(category, ' categories')
 
 
-	np.savetxt(values, 'values.txt')
+	np.savetxt('values.txt', values)
 
 #np.mean
 # confidence interval from std
