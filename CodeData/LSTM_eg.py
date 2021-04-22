@@ -19,6 +19,12 @@ from sklearn.preprocessing import MinMaxScaler
 from numpy import array
 
 
+
+import os
+
+import seaborn as sns; sns.set_theme() 
+
+import errno
 #print(train)
 
 
@@ -47,8 +53,13 @@ def rmse(pred, actual):
 
 # define the model
 
-def MODEL_LSTM(name, x_train, x_test, y_train, y_test, Num_Exp, n_steps_in, n_steps_out, Epochs, Hidden):
-	n_features = 1
+def MODEL_LSTM(univariate, name, x_train, x_test, y_train, y_test, Num_Exp, n_steps_in, n_steps_out, Epochs, Hidden):
+
+	if univariate is True:
+		n_features = 1
+	else: 
+		n_features = 3 # can change 
+
 	x_train = x_train.reshape((x_train.shape[0], x_train.shape[1], n_features))
 	print(x_train.shape)
 	x_test = x_test.reshape((x_test.shape[0], x_test.shape[1], n_features))
@@ -150,16 +161,48 @@ def edi_cat(values):
 
 #------------------MAIN--------------------
 
-num_grids = 2
+try:
+    os.makedirs('results') # create directory if it does not exist already
+except OSError as e:
+    if e.errno != errno.EEXIST:
+        raise
 
-for grid in range(num_grids):
+num_grids = 2 # set number of grids based on dataset
+
+
+data = np.genfromtxt("Edi_month_grid - Copy.csv", delimiter=',')   # read data (currently Fiji, can cover Samoa and Vanuatu etc)
+
+cov_mat = np.cov(data.T)
+
+#print(cov_mat, ' cov_mat ')
+
+#ensure your seaborn installation is latest version
+ax = sns.heatmap(cov_mat) #todo - add axis labels etc 
+#https://www.carladasilvamatos.com/blog/2019/12/25/lnn5xyodn2kv4i0o2mg9agdw07qgo0
+
+figure = ax.get_figure()    
+figure.savefig('results/covmat_Fiji.png', dpi=400) 
+
+univariate = True # if false, its multivariate case
+
+
+for grid in range(num_grids): # now loop through the grids and use LSTM (univariate)
 
 	print(grid, ' is grid')
 
-	data = np.genfromtxt("Edi_month_grid - Copy.csv", delimiter=',')
-	univariate_g1 = data[:, grid]
-	train = univariate_g1[0:420]
-	test = univariate_g1[421:457]
+ 
+	if univariate is True:
+		univariate_grid = data[:, grid]
+		train = univariate_grid[0:420]
+		test = univariate_grid[421:457]
+
+	else: # need to work on this further
+		multivariate_grid = data[:, grid, 1,3]
+		train = multivariate_grid[0:420]
+		test = multiriate_grid[421:457]
+
+		print(multiriate_grid, ' multiriate_grid')
+
 
 
 	n_steps_in = 3
@@ -179,7 +222,7 @@ for grid in range(num_grids):
 	name = 'Grid1'
 	Num_Exp = 2
 
-	future_prediction, train_acc, test_acc, Step_RMSE, Best_Predict_Test, y_predicttrain, y_predicttest, y_predicttest_allruns = MODEL_LSTM(name,x_train,x_test,y_train,y_test,Num_Exp,n_steps_in,n_steps_out,Epochs, Hidden)
+	future_prediction, train_acc, test_acc, Step_RMSE, Best_Predict_Test, y_predicttrain, y_predicttest, y_predicttest_allruns = MODEL_LSTM(univariate, name,x_train,x_test,y_train,y_test,Num_Exp,n_steps_in,n_steps_out,Epochs, Hidden)
 
 	
 
@@ -205,6 +248,15 @@ for grid in range(num_grids):
 	print(step_rmse_std, ' step_rmse std') 
 
 
+	# this is done so that we can combine variables with arrays ( for the steps)
+	results_combined = np.array([mean_train, mean_test,  std_train, std_test])
+	results_combined = np.hstack((results_combined, step_rmse_mean))
+	results_combined = np.hstack((results_combined, step_rmse_std))
+
+
+	print(results_combined, ' results_combined ')
+
+
 
  
 
@@ -212,25 +264,17 @@ for grid in range(num_grids):
 	y_predicttest_mean = np.mean(y_predicttest_allruns, axis=0)
 
 
-	category_steps = edi_cat(y_predicttest_mean)
-
-
-	print(category_steps)
-
-
+	category_steps = edi_cat(y_predicttest_mean) # now we doing catgory on mean predictions that includes the steps ahead
+ 
 	y_predicttest_std = np.std(y_predicttest_allruns, axis=0)
 
 	y_predicttest_meanstd = np.concatenate((y_predicttest_mean, y_predicttest_std), axis=1)
 
-	results_combined = np.array([mean_train, std_train, mean_test, std_test, step_rmse_mean, step_rmse_std])
-
-	print(results_combined, ' results_combined ')
-
- 
 
 
-	#np.savetxt('results/results_summary_'+str(grid)+'_.txt', results_combined)
 
-	np.savetxt('results/category_steps_'+str(grid)+'_.txt', category_steps)
+	np.savetxt('results/category_steps_'+str(grid)+'_.csv', category_steps, delimiter = ',', fmt='%d')
 
-	np.savetxt('results/y_predicttest_meanstd_'+str(grid)+'_.txt', y_predicttest_meanstd) 
+	np.savetxt('results/y_predicttest_meanstd_'+str(grid)+'_.csv', y_predicttest_meanstd, delimiter = ',', fmt='%f') 
+
+	np.savetxt('results/results_summary_'+str(grid)+'_.csv', results_combined, delimiter = ',', fmt='%f')  # this can be fixed later so results are all saved for each grid
