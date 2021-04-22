@@ -197,11 +197,11 @@ for grid in range(num_grids): # now loop through the grids and use LSTM (univari
 		test = univariate_grid[421:457]
 
 	else: # need to work on this further
-		multivariate_grid = data[:, grid, 1,3]
+		multivariate_grid = data[:, [grid, 1,3]] #select certain columns
 		train = multivariate_grid[0:420]
-		test = multiriate_grid[421:457]
+		test = multivariate_grid[421:457]
 
-		print(multiriate_grid, ' multiriate_grid')
+		print(multivariate_grid, ' multiriate_grid')
 
 
 
