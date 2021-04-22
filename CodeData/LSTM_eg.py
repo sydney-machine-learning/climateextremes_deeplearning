@@ -250,6 +250,9 @@ for grid in range(num_grids): # now loop through the grids and use LSTM (univari
 		train = multivariate_grid[0:420]
 		test = multivariate_grid[421:457] 
 
+		# 0, 1, 3, 0
+		# 1, 5, 6, 7
+
 		x_train, y_train = msplit_sequence(train, n_steps_in, n_steps_out) 
 	 
 		x_test, y_test = msplit_sequence(test, n_steps_in, n_steps_out)
