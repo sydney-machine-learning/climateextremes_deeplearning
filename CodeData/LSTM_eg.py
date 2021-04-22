@@ -114,40 +114,41 @@ def MODEL_LSTM(name, x_train, x_test, y_train, y_test, Num_Exp, n_steps_in, n_st
 
 def edi_cat(values):
 	
-	category = np.zeros(values.shape[0])
+	category = np.zeros((values.shape[0], values.shape[1]))
 	
-	print(category)
 	
 	for i in range(0, values.shape[0]):
-		if values[i] >= 2: 
-			category[i] = 6
-			
-		elif values[i] > 1.5 and values[i] <= 1.99: 
-			category[i] = 5
-			
-		elif values[i] > 1.0 and values[i] <= 1.49: 
-			category[i] = 4
-			
-		elif values[i] > -0.99 and values[i] <= 0.99: 
-			category[i] = 3
-			
-		elif values[i] > -1.49 and values[i] <= -1.0: 
-			category[i] = 2
-			
-		elif values[i] > -1.99 and values[i] <= -1.5: 
-			category[i] = 1
-			
-		elif values[i] <= -2: 
-			category[i] = 0
-		else:
-			category[i] = 7
+
+		for j in range(0, values.shape[1]):
+			if values[i][j] >= 2: 
+				category[i][j] = 6
+				
+			elif values[i][j] > 1.5 and values[i][j] <= 1.99: 
+				category[i][j] = 5
+				
+			elif values[i][j] > 1.0 and values[i][j] <= 1.49: 
+				category[i][j] = 4
+				
+			elif values[i][j] > -0.99 and values[i][j] <= 0.99: 
+				category[i][j] = 3
+				
+			elif values[i][j] > -1.49 and values[i][j] <= -1.0: 
+				category[i][j] = 2
+				
+			elif values[i][j] > -1.99 and values[i][j] <= -1.5: 
+				category[i][j] = 1
+				
+			elif values[i][j] <= -2: 
+				category[i][j] = 0
+			else:
+				category[i][j] = 7
 	#print(category)
 	#print(values)
 
 	return  category 
 
 
-#------------------
+#------------------MAIN--------------------
 
 num_grids = 2
 
@@ -172,11 +173,11 @@ for grid in range(num_grids):
 
 
 	Hidden = 10
-	Epochs = 20
+	Epochs = 50
 	n_steps_out = 3
 	n_steps_in = 3
 	name = 'Grid1'
-	Num_Exp = 5
+	Num_Exp = 2
 
 	future_prediction, train_acc, test_acc, Step_RMSE, Best_Predict_Test, y_predicttrain, y_predicttest, y_predicttest_allruns = MODEL_LSTM(name,x_train,x_test,y_train,y_test,Num_Exp,n_steps_in,n_steps_out,Epochs, Hidden)
 
@@ -205,35 +206,31 @@ for grid in range(num_grids):
 
 
 
-
-	values = y_predicttest[:,0]
-
-
-	category = edi_cat(values)
-
-	print(category, ' categories')
-
-	#print(y_predicttest_allruns, 'y_predicttest_allruns')
+ 
 
 
 	y_predicttest_mean = np.mean(y_predicttest_allruns, axis=0)
 
+
+	category_steps = edi_cat(y_predicttest_mean)
+
+
+	print(category_steps)
+
+
 	y_predicttest_std = np.std(y_predicttest_allruns, axis=0)
 
-	print(y_predicttest_mean, ' y_predicttest_mean')
+	y_predicttest_meanstd = np.concatenate((y_predicttest_mean, y_predicttest_std), axis=1)
 
-	print(y_predicttest_std, ' y_predicttest_std')
+	results_combined = np.array([mean_train, std_train, mean_test, std_test, step_rmse_mean, step_rmse_std])
+
+	print(results_combined, ' results_combined ')
+
+ 
 
 
+	#np.savetxt('results/results_summary_'+str(grid)+'_.txt', results_combined)
 
-	#print(y_predicttest_allruns, 'y_predicttest_allruns')
+	np.savetxt('results/category_steps_'+str(grid)+'_.txt', category_steps)
 
-
-	np.savetxt('results/values_'+str(grid)+'_.txt', values)
-
-	np.savetxt('results/y_predicttest_mean_'+str(grid)+'_.txt', y_predicttest_mean)
-
-	np.savetxt('results/y_predicttest_std_'+str(grid)+'_.txt', y_predicttest_std)
-
-#np.mean
-# confidence interval from std
+	np.savetxt('results/y_predicttest_meanstd_'+str(grid)+'_.txt', y_predicttest_meanstd) 
