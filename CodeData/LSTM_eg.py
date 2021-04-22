@@ -28,6 +28,29 @@ import errno
 #print(train)
 
 
+'''
+
+f0  (t2)
+
+f0  (t1)
+
+f0  (t0)
+
+f0, f1, f2  (t-1)
+
+f0, f1, f2  (t-2)
+
+f0, f1, f2  (t-3)
+
+
+
+
+
+'''
+
+
+
+
 # split a univariate sequence into samples
 def split_sequence(sequence, n_steps_in, n_steps_out):
 	X, y = list(), list()
@@ -45,6 +68,24 @@ def split_sequence(sequence, n_steps_in, n_steps_out):
 	return np.array(X), np.array(y)
 
 
+def msplit_sequence(sequences, n_steps_in, n_steps_out):
+    X, y = list(), list()
+    for i in range(len(sequences)):
+    # find the end of this pattern
+        end_ix = i + n_steps_in
+        out_end_ix = end_ix + n_steps_out-1
+    # check if we are beyond the dataset
+        if out_end_ix > len(sequences):
+            break
+        # gather input and output parts of the pattern
+        
+        seq_x, seq_y = sequences[i:end_ix, :], sequences[end_ix-1:out_end_ix, -1]
+        X.append(seq_x)
+        y.append(seq_y)
+    return array(X), array(y)
+
+
+
 
 
 def rmse(pred, actual):
@@ -58,7 +99,7 @@ def MODEL_LSTM(univariate, name, x_train, x_test, y_train, y_test, Num_Exp, n_st
 	if univariate is True:
 		n_features = 1
 	else: 
-		n_features = 3 # can change 
+		n_features = 2 # can change 
 
 	x_train = x_train.reshape((x_train.shape[0], x_train.shape[1], n_features))
 	print(x_train.shape)
@@ -71,7 +112,7 @@ def MODEL_LSTM(univariate, name, x_train, x_test, y_train, y_test, Num_Exp, n_st
 
 	model = Sequential()
 	model.add(LSTM(Hidden, activation='relu', input_shape=(n_steps_in, n_features), dropout=0.2))
-	model.add(Dense(32))
+	model.add(Dense(Hidden))
 	model.add(Dense(n_steps_out))
 	model.compile(optimizer='adam', loss='mse')
 	model.summary()
@@ -183,7 +224,7 @@ ax = sns.heatmap(cov_mat) #todo - add axis labels etc
 figure = ax.get_figure()    
 figure.savefig('results/covmat_Fiji.png', dpi=400) 
 
-univariate = True # if false, its multivariate case
+univariate = False # if false, its multivariate case
 
 
 for grid in range(num_grids): # now loop through the grids and use LSTM (univariate)
@@ -207,11 +248,13 @@ for grid in range(num_grids): # now loop through the grids and use LSTM (univari
 
 	n_steps_in = 3
 	n_steps_out = 3
-	x_train, y_train = split_sequence(train, n_steps_in, n_steps_out)
+	x_train, y_train = msplit_sequence(train, n_steps_in, n_steps_out)
+
+	print(x_train, y_train, ' x_train, y_train')
 
 	# summarize the data 
 	 
-	x_test, y_test = split_sequence(test, n_steps_in, n_steps_out)
+	x_test, y_test = msplit_sequence(test, n_steps_in, n_steps_out)
 	 
 
 
