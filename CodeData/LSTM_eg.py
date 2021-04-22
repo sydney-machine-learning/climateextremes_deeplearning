@@ -224,37 +224,35 @@ ax = sns.heatmap(cov_mat) #todo - add axis labels etc
 figure = ax.get_figure()    
 figure.savefig('results/covmat_Fiji.png', dpi=400) 
 
-univariate = False # if false, its multivariate case
+univariate = True # if false, its multivariate case
 
 
 for grid in range(num_grids): # now loop through the grids and use LSTM (univariate)
 
 	print(grid, ' is grid')
 
+
+	n_steps_in = 3
+	n_steps_out = 3
+
  
 	if univariate is True:
 		univariate_grid = data[:, grid]
 		train = univariate_grid[0:420]
-		test = univariate_grid[421:457]
+		test = univariate_grid[421:457] 
+
+		x_train, y_train = split_sequence(train, n_steps_in, n_steps_out) 
+	 
+		x_test, y_test = split_sequence(test, n_steps_in, n_steps_out)
 
 	else: # need to work on this further
 		multivariate_grid = data[:, [grid, 1,3]] #select certain columns
 		train = multivariate_grid[0:420]
-		test = multivariate_grid[421:457]
+		test = multivariate_grid[421:457] 
 
-		print(multivariate_grid, ' multiriate_grid')
-
-
-
-	n_steps_in = 3
-	n_steps_out = 3
-	x_train, y_train = msplit_sequence(train, n_steps_in, n_steps_out)
-
-	print(x_train, y_train, ' x_train, y_train')
-
-	# summarize the data 
+		x_train, y_train = msplit_sequence(train, n_steps_in, n_steps_out) 
 	 
-	x_test, y_test = msplit_sequence(test, n_steps_in, n_steps_out)
+		x_test, y_test = msplit_sequence(test, n_steps_in, n_steps_out)
 	 
 
 
