@@ -312,7 +312,12 @@ for grid in range(num_grids): # now loop through the grids and use LSTM (univari
  
 	y_predicttest_std = np.std(y_predicttest_allruns, axis=0)
 
-	y_predicttest_meanstd = np.concatenate((y_predicttest_mean, y_predicttest_std), axis=1)
+	y_predicttest_low= np.percentile(y_predicttest_allruns, 5, axis=0)
+
+
+	y_predicttest_high= np.percentile(y_predicttest_allruns, 95, axis=0)
+
+	y_predicttest_meanstd = np.concatenate((y_predicttest_mean, y_predicttest_std, y_predicttest_low, y_predicttest_high), axis=1)
 
 
 
