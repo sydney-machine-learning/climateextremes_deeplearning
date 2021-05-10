@@ -116,12 +116,12 @@ def rmse(pred, actual):
 
 # define the model
 
-def MODEL_LSTM(univariate, name, x_train, x_test, y_train, y_test, Num_Exp, n_steps_in, n_steps_out, Epochs, Hidden):
+def MODEL_LSTM(univariate, name, x_train, x_test, y_train, y_test, Num_Exp, n_steps_in, n_steps_out, Epochs, Hidden, n_features):
 
-	if univariate is True:
-		n_features = 1
-	else: 
-		n_features = 2 # can change 
+	#if univariate is True:
+	#	n_features = 1
+	#else: 
+	#	n_features = 2 # can change 
 
 	x_train = x_train.reshape((x_train.shape[0], x_train.shape[1], n_features))
 	print(x_train.shape)
@@ -235,9 +235,14 @@ num_grids = 2 # set number of grids based on dataset
 
 data = np.genfromtxt("Edi_month_grid - Copy.csv", delimiter=',')   # read data (currently Fiji, can cover Samoa and Vanuatu etc)
 
+
+
+corr_gridindex = np.genfromtxt("corr_gridindex.txt")   # read data (currently Fiji, can cover Samoa and Vanuatu etc)
+
+ 
+
 cov_mat = np.cov(data.T)
 
-#print(cov_mat, ' cov_mat ')
 
 #ensure your seaborn installation is latest version
 ax = sns.heatmap(cov_mat) #todo - add axis labels etc 
@@ -247,6 +252,11 @@ figure = ax.get_figure()
 figure.savefig('results/covmat_Fiji.png', dpi=400) 
 
 univariate = False # if false, its multivariate case
+
+#corr_gridindex = corr_gridindex[]
+
+
+print(corr_gridindex, ' corr_gridindex ')
 
 
 for grid in range(num_grids): # now loop through the grids and use LSTM (univariate)
@@ -266,17 +276,27 @@ for grid in range(num_grids): # now loop through the grids and use LSTM (univari
 		x_train, y_train = split_sequence(train, n_steps_in, n_steps_out) 
 	 
 		x_test, y_test = split_sequence(test, n_steps_in, n_steps_out)
+		n_features = 1
 
-	else: # need to work on this further
-		multivariate_grid = data[:, [1,3, grid]] #select certain columns
+	else: # need to work on this further 
+		index = corr_gridindex[grid, :]
+
+		print(index, ' is index')
+
+
+		multivariate_grid = data[:, [index]] #select certain columns
 		train = multivariate_grid[0:420]
 		test = multivariate_grid[421:457] 
 
-		# 0, 1, 3, 0
-		# 1, 5, 6, 7
+		print(train, ' x_train')
+
+		# 1, 3, 0 
+		# 2, 3, 1
 
 		x_train, y_train = msplit_sequence(train, n_steps_in, n_steps_out) 
 		x_test, y_test = msplit_sequence(test, n_steps_in, n_steps_out)
+
+		n_features = 4
 	 
 
 
@@ -287,7 +307,7 @@ for grid in range(num_grids): # now loop through the grids and use LSTM (univari
 	name = 'Grid1'
 	Num_Exp = 2
 
-	future_prediction, train_acc, test_acc, Step_RMSE, Best_Predict_Test, y_predicttrain, y_predicttest, y_predicttest_allruns = MODEL_LSTM(univariate, name,x_train,x_test,y_train,y_test,Num_Exp,n_steps_in,n_steps_out,Epochs, Hidden)
+	future_prediction, train_acc, test_acc, Step_RMSE, Best_Predict_Test, y_predicttrain, y_predicttest, y_predicttest_allruns = MODEL_LSTM(univariate, name,x_train,x_test,y_train,y_test,Num_Exp,n_steps_in,n_steps_out,Epochs, Hidden, n_features)
 
 	
 
