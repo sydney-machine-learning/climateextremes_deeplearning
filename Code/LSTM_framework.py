@@ -230,15 +230,14 @@ except OSError as e:
     if e.errno != errno.EEXIST:
         raise
 
-num_grids = 2 # set number of grids based on dataset
+num_grids = 21 # set number of grids based on dataset
 
 
-data = np.genfromtxt("Edi_month_grid - Copy.csv", delimiter=',')   # read data (currently Fiji, can cover Samoa and Vanuatu etc)
+data = np.genfromtxt("multivariate_data.csv", delimiter=',')   # read data (currently Fiji, can cover Samoa and Vanuatu etc)
 
 
 
-corr_gridindex = np.genfromtxt("corr_gridindex.txt")   # read data (currently Fiji, can cover Samoa and Vanuatu etc)
-
+corr_gridindex = np.genfromtxt("corr_gridindex.txt")   # read data about feature grid index for each grid for multivariate model
  
 
 cov_mat = np.cov(data.T)
@@ -279,19 +278,18 @@ for grid in range(num_grids): # now loop through the grids and use LSTM (univari
 		n_features = 1
 
 	else: # need to work on this further 
-		index = corr_gridindex[grid, :]
+		index = corr_gridindex[grid, :] 
+		index =  index.tolist()
+		my_index = [round(x) for x in index] # just to ensure you have list of int
 
-		print(index, ' is index')
+
+		print(my_index, ' is index x')
 
 
-		multivariate_grid = data[:, [index]] #select certain columns
+		multivariate_grid = data[:, my_index] #select certain columns based on index for each grid read from file 
 		train = multivariate_grid[0:420]
 		test = multivariate_grid[421:457] 
-
-		print(train, ' x_train')
-
-		# 1, 3, 0 
-		# 2, 3, 1
+ 
 
 		x_train, y_train = msplit_sequence(train, n_steps_in, n_steps_out) 
 		x_test, y_test = msplit_sequence(test, n_steps_in, n_steps_out)
