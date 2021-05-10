@@ -268,7 +268,7 @@ for grid in range(num_grids): # now loop through the grids and use LSTM (univari
 		x_test, y_test = split_sequence(test, n_steps_in, n_steps_out)
 
 	else: # need to work on this further
-		multivariate_grid = data[:, [grid, 1,3]] #select certain columns
+		multivariate_grid = data[:, [1,3, grid]] #select certain columns
 		train = multivariate_grid[0:420]
 		test = multivariate_grid[421:457] 
 
