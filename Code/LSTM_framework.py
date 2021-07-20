@@ -95,15 +95,19 @@ def msplit_sequence(sequences, n_steps_in, n_steps_out):
     for i in range(len(sequences)):
     # find the end of this pattern
         end_ix = i + n_steps_in
-        out_end_ix = end_ix + n_steps_out-1
+        out_end_ix = end_ix + n_steps_out 
     # check if we are beyond the dataset
         if out_end_ix > len(sequences):
             break
         # gather input and output parts of the pattern
         
-        seq_x, seq_y = sequences[i:end_ix, :-1], sequences[end_ix-1:out_end_ix, -1]
+        #seq_x, seq_y = sequences[i:end_ix, :-1], sequences[end_ix-1:out_end_ix, -1 ]
+
+        seq_x, seq_y = sequences[i:end_ix, :], sequences[end_ix:out_end_ix, -1 ]
         X.append(seq_x)
         y.append(seq_y)
+
+
     return array(X), array(y)
 
 
@@ -230,7 +234,7 @@ except OSError as e:
     if e.errno != errno.EEXIST:
         raise
 
-num_grids = 21 # set number of grids based on dataset
+num_grids = 21 # 21 set number of grids based on dataset
 
 
 data = np.genfromtxt("multivariate_data.csv", delimiter=',')   # read data (currently Fiji, can cover Samoa and Vanuatu etc)
@@ -269,12 +273,19 @@ for grid in range(num_grids): # now loop through the grids and use LSTM (univari
  
 	if univariate is True:
 		univariate_grid = data[:, grid]
-		train = univariate_grid[0:420]
-		test = univariate_grid[421:457] 
+		train = univariate_grid[0:421]  #two years (24 months)
+		test = univariate_grid[422:457] 
+
+		#train = univariate_grid[0:420] # 90 percent train
+		#test = univariate_grid[421:457] 
 
 		x_train, y_train = split_sequence(train, n_steps_in, n_steps_out) 
 	 
 		x_test, y_test = split_sequence(test, n_steps_in, n_steps_out)
+
+		print(x_train, ' x train')
+		print(y_train, ' y train')
+
 		n_features = 1
 
 	else: # need to work on this further 
@@ -287,14 +298,20 @@ for grid in range(num_grids): # now loop through the grids and use LSTM (univari
 
 
 		multivariate_grid = data[:, my_index] #select certain columns based on index for each grid read from file 
-		train = multivariate_grid[0:420]
+		print(multivariate_grid, '   multivariate_grid')
+
+		train = multivariate_grid[0:420]   #90 percent train
 		test = multivariate_grid[421:457] 
  
 
 		x_train, y_train = msplit_sequence(train, n_steps_in, n_steps_out) 
+		print(x_train, ' x train')
+		print(y_train, ' y train')
+
+
 		x_test, y_test = msplit_sequence(test, n_steps_in, n_steps_out)
 
-		n_features = 4
+		n_features = 5
 	 
 
 
@@ -303,7 +320,7 @@ for grid in range(num_grids): # now loop through the grids and use LSTM (univari
 	n_steps_out = 3
 	n_steps_in = 3
 	name = 'Grid1'
-	Num_Exp = 2
+	Num_Exp = 5
 
 	future_prediction, train_acc, test_acc, Step_RMSE, Best_Predict_Test, y_predicttrain, y_predicttest, y_predicttest_allruns = MODEL_LSTM(univariate, name,x_train,x_test,y_train,y_test,Num_Exp,n_steps_in,n_steps_out,Epochs, Hidden, n_features)
 
