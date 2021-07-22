@@ -15,6 +15,7 @@ import joblib
 from datetime import timedelta, date
 import tensorflow as tf
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import r2_score
 
 from numpy import array
 
@@ -134,6 +135,8 @@ def MODEL_LSTM(univariate, name, x_train, x_test, y_train, y_test, Num_Exp, n_st
 
 	train_acc = np.zeros(Num_Exp)
 	test_acc = np.zeros(Num_Exp)
+	test_r2 = np.zeros(Num_Exp)
+
 	Step_RMSE = np.zeros([Num_Exp, n_steps_out])
 
 	model = Sequential()
@@ -166,6 +169,9 @@ def MODEL_LSTM(univariate, name, x_train, x_test, y_train, y_test, Num_Exp, n_st
 		#print(train_acc[run])
 
 		test_acc[run] = rmse(y_predicttest, y_test)
+
+		test_r2[run] = r2_score(y_predicttest, y_test)
+
 		if test_acc[run] < Best_RMSE:
 			Best_RMSE = test_acc[run]
 			Best_Predict_Test = y_predicttest
@@ -188,7 +194,7 @@ def MODEL_LSTM(univariate, name, x_train, x_test, y_train, y_test, Num_Exp, n_st
 		# future_prediction[run][:] = np.ndarray.flatten(scaler.inverse_transform(np.reshape(results,(len(results),1))))
 		# print(future_prediction)
 	print("Total time for", Num_Exp, "experiments", time.time() - start_time)
-	return future_prediction, train_acc, test_acc, Step_RMSE, Best_Predict_Test, y_predicttrain, y_predicttest, y_predicttest_allruns
+	return future_prediction, train_acc, test_acc, test_r2, Step_RMSE, Best_Predict_Test, y_predicttrain, y_predicttest, y_predicttest_allruns
 
 def edi_cat(values):
 	
@@ -322,7 +328,7 @@ for grid in range(num_grids): # now loop through the grids and use LSTM (univari
 	name = 'Grid1'
 	Num_Exp = 5
 
-	future_prediction, train_acc, test_acc, Step_RMSE, Best_Predict_Test, y_predicttrain, y_predicttest, y_predicttest_allruns = MODEL_LSTM(univariate, name,x_train,x_test,y_train,y_test,Num_Exp,n_steps_in,n_steps_out,Epochs, Hidden, n_features)
+	future_prediction, train_acc, test_acc, test_r2, Step_RMSE, Best_Predict_Test, y_predicttrain, y_predicttest, y_predicttest_allruns = MODEL_LSTM(univariate, name,x_train,x_test,y_train,y_test,Num_Exp,n_steps_in,n_steps_out,Epochs, Hidden, n_features)
 
 	
 
@@ -332,6 +338,10 @@ for grid in range(num_grids): # now loop through the grids and use LSTM (univari
 	mean_test = np.mean(test_acc, axis=0)
 	std_train = np.std(train_acc, axis=0)
 	std_test = np.std(test_acc, axis=0)
+
+
+	mean_r2test = np.mean(test_r2, axis=0)
+	std_r2test = np.std(test_r2, axis=0)
 
 	step_rmse_mean = np.mean(Step_RMSE, axis=0)
 	step_rmse_std = np.std(Step_RMSE, axis=0)
@@ -346,6 +356,10 @@ for grid in range(num_grids): # now loop through the grids and use LSTM (univari
 
 	print(step_rmse_mean, ' step_rmse mean') 
 	print(step_rmse_std, ' step_rmse std') 
+
+
+	print(mean_r2test, ' mean_std_r2test') 
+	print(std_r2test, ' std_r2test ') 
 
 
 	# this is done so that we can combine variables with arrays ( for the steps)
